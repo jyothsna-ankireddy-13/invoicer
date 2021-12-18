@@ -1,4 +1,5 @@
-import React,{ useEffect } from 'react';
+import React,{ useState,useEffect } from 'react';
+import {AiOutlineDelete, AiOutlineEdit} from 'react-icons/ai';
 import {v4 as uuidv4} from "uuid";
 export default function TableForm(
     {   description,
@@ -10,9 +11,13 @@ export default function TableForm(
         amount,
         setAmount,
         list,
-        setList
+        setList,
+        total,
+        setTotal
     }) {
-    
+
+        const [isEditting,setIsEditing] = useState(false)
+    //form submit function
     const handleSubmit = (e) =>{
         e.preventDefault()
 
@@ -28,16 +33,44 @@ export default function TableForm(
         setPrice("")
         setAmount("")
         setList([...list,newItems])
+        setIsEditing(false)
         console.log(list)
     }
-
+    // calculate item amount function
     useEffect(() => {
         const calculateAmount = (amount) =>{
             setAmount(quantity * price)
         }
         calculateAmount(amount)
     }, [amount,price,quantity,setAmount])
-    
+
+    //calculate total amount of items in table
+
+   useEffect(() => {
+      
+    let rows = document.querySelectorAll(".amount")
+    let sum = 0
+    for(let i=0 ;i<rows.length;i++){
+        if(rows[i].className === "amount"){
+            sum += isNaN(rows[i].innerHTML)?0:parseInt(rows[i].innerHTML)
+            setTotal(sum)
+        }
+    }
+   })
+
+    //Edit function
+    const editRow = (id) =>{
+        const editingRow = list.find((row)=> row.id === id)
+        setList(list.filter((row)=>row.id !==id))
+        setIsEditing(true)
+        setDescription(editingRow.description)
+        setQuantity(editingRow.quantity)
+        setPrice(editingRow.price)
+    }
+
+
+    //Delete function
+    const deleteRow = (id)=>setList(list.filter((row)=>row.id !==id))
 
     return (
 
@@ -87,7 +120,7 @@ export default function TableForm(
                  font-bold border-2 border-blue-500 
                  hover:bg-transparent hover:text-blue-500
                  transition-all duration-300" >
-                    Add Item
+                    {isEditting ? "Edit Item" : "Add Item"}
                 </button>
            </form>
 
@@ -109,12 +142,25 @@ export default function TableForm(
                             <td>{description}</td>
                             <td>{quantity}</td>
                             <td>{price}</td>
-                            <td>{amount}</td>
+                            <td className="amount">{amount}</td>
+                            <td><button onClick={()=>deleteRow(id)} >
+                                    <AiOutlineDelete className="text-red-500 font-bold text-xl"/>
+                                </button>
+                            </td>
+                            <td><button onClick={()=>editRow(id)}>
+                                    <AiOutlineEdit className="text-green-500 font-bold text-xl"/>
+                                </button>
+                            </td>
                         </tr>
                     </tbody>
                    </React.Fragment>
                ))}
             </table>
+            <div>
+                <h2 className="flex items-end justify-end text-gray=800 text-4xl font-bold">
+                    Rup. {total.toLocaleString()}
+                </h2>
+            </div> 
         </>
     )
 }
